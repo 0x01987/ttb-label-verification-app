@@ -104,15 +104,47 @@ export default function Home() {
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium">Label Image</label>
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  className="mt-2 w-full rounded-lg border border-slate-300 p-2"
-                />
-              </div>
+<div>
+  <label className="block text-sm font-medium">
+    Alcohol Label Image
+  </label>
+
+  <label className="mt-2 flex min-h-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition hover:border-blue-400 hover:bg-blue-50">
+    
+    <div className="text-4xl">📄</div>
+
+    <div className="mt-3 text-lg font-semibold text-slate-700">
+      {file ? file.name : "Click here to upload a label image"}
+    </div>
+
+    <div className="mt-2 text-sm text-slate-500">
+      PNG, JPG, JPEG
+    </div>
+
+    <input
+      type="file"
+      accept="image/png,image/jpeg,image/jpg"
+      onChange={(e) => setFile(e.target.files?.[0] || null)}
+      className="hidden"
+    />
+  </label>
+
+  {file && (
+    <div className="mt-3 flex items-center justify-between rounded-lg bg-green-50 p-3">
+      <span className="text-sm text-green-700">
+        ✓ File selected
+      </span>
+
+      <button
+        type="button"
+        onClick={() => setFile(null)}
+        className="text-sm font-medium text-red-600 hover:text-red-700"
+      >
+        Remove
+      </button>
+    </div>
+  )}
+</div>
 
               <div>
                 <label className="block text-sm font-medium">Brand Name</label>
