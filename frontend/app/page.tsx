@@ -2,70 +2,77 @@
 
 import { useState } from "react";
 
+const API_URL = "https://ttb-label-verification-app-api.onrender.com";
+
 type VerificationResponse = {
   filename: string;
   ocr_text: string;
   verification: {
-    expected: {
-      brand_name: string;
-      abv: string;
-      net_contents: string;
-    };
+    expected: Record<string, string>;
     found: {
       brand_name: string | null;
+      class_type: string | null;
       abv: string | null;
       net_contents: string | null;
+      producer: string | null;
+      country_of_origin: string | null;
       government_warning: {
         found: boolean;
         matched_parts: string[];
       };
     };
-    checks: {
-      brand_name: { match: boolean; score: number };
-      abv: { match: boolean; score: number };
-      net_contents: { match: boolean; score: number };
-      government_warning: { match: boolean; score: number };
-    };
+    checks: Record<string, { match: boolean; score: number }>;
     compliance_score: number;
     overall_status: string;
   };
 };
 
+type BatchResponse = {
+  total_files: number;
+  results: {
+    filename: string;
+    overall_status: string;
+    compliance_score: number;
+  }[];
+};
+
 export default function Home() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [brandName, setBrandName] = useState("MALT & HOP");
+  const [classType, setClassType] = useState("Ale");
   const [abv, setAbv] = useState("5%");
   const [netContents, setNetContents] = useState("1 PINT");
+  const [producer, setProducer] = useState("");
+  const [countryOfOrigin, setCountryOfOrigin] = useState("");
   const [result, setResult] = useState<VerificationResponse | null>(null);
+  const [batchResult, setBatchResult] = useState<BatchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSingleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setResult(null);
+    setBatchResult(null);
 
-    if (!file) {
+    if (files.length === 0) {
       setError("Please upload a label image.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("brand_name", brandName);
-    formData.append("abv", abv);
-    formData.append("net_contents", netContents);
+    const formData = buildFormData();
+    formData.append("file", files[0]);
 
     try {
       setLoading(true);
 
-      const response = await fetch("https://ttb-label-verification-app-api.onrender.com/verify", {
+      const response = await fetch(`${API_URL}/verify`, {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Verification request failed.");
+        throw new Error("Verification failed.");
       }
 
       const data = await response.json();
@@ -77,12 +84,57 @@ export default function Home() {
     }
   }
 
-  const status = result?.verification.overall_status;
-  const score = result?.verification.compliance_score;
+  async function handleBatchVerify() {
+    setError("");
+    setResult(null);
+    setBatchResult(null);
+
+    if (files.length === 0) {
+      setError("Please upload one or more label images.");
+      return;
+    }
+
+    const formData = buildFormData();
+
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_URL}/batch-verify`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Batch verification failed.");
+      }
+
+      const data = await response.json();
+      setBatchResult(data);
+    } catch {
+      setError("Unable to verify batch. Make sure the deployed API is reachable.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function buildFormData() {
+    const formData = new FormData();
+    formData.append("brand_name", brandName);
+    formData.append("class_type", classType);
+    formData.append("abv", abv);
+    formData.append("net_contents", netContents);
+    formData.append("producer", producer);
+    formData.append("country_of_origin", countryOfOrigin);
+    return formData;
+  }
 
   return (
     <main className="min-h-screen bg-slate-100 p-6 text-slate-900">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <header className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
             AI-Powered Compliance Prototype
@@ -91,8 +143,8 @@ export default function Home() {
             TTB Label Verification App
           </h1>
           <p className="mt-3 max-w-3xl text-slate-600">
-            Upload an alcohol label, enter expected application values, and verify
-            whether the label matches required compliance fields.
+            Upload alcohol labels, enter expected application values, and verify
+            required TTB label fields.
           </p>
         </header>
 
@@ -100,81 +152,67 @@ export default function Home() {
           <section className="rounded-xl bg-white p-6 shadow">
             <h2 className="text-xl font-semibold">Application Data</h2>
             <p className="mt-1 text-sm text-slate-500">
-              These fields represent the values submitted in the label application.
+              These values represent the data submitted in the label application.
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-<div>
-  <label className="block text-sm font-medium">
-    Alcohol Label Image
-  </label>
-
-  <label className="mt-2 flex min-h-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition hover:border-blue-400 hover:bg-blue-50">
-    
-    <div className="text-4xl">📄</div>
-
-    <div className="mt-3 text-lg font-semibold text-slate-700">
-      {file ? file.name : "Click here to upload a label image"}
-    </div>
-
-    <div className="mt-2 text-sm text-slate-500">
-      PNG, JPG, JPEG
-    </div>
-
-    <input
-      type="file"
-      accept="image/png,image/jpeg,image/jpg"
-      onChange={(e) => setFile(e.target.files?.[0] || null)}
-      className="hidden"
-    />
-  </label>
-
-  {file && (
-    <div className="mt-3 flex items-center justify-between rounded-lg bg-green-50 p-3">
-      <span className="text-sm text-green-700">
-        ✓ File selected
-      </span>
-
-      <button
-        type="button"
-        onClick={() => setFile(null)}
-        className="text-sm font-medium text-red-600 hover:text-red-700"
-      >
-        Remove
-      </button>
-    </div>
-  )}
-</div>
-
+            <form onSubmit={handleSingleVerify} className="mt-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium">Brand Name</label>
-                <input
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  className="mt-2 w-full rounded-lg border border-slate-300 p-3"
-                  placeholder="OLD TOM DISTILLERY"
-                />
+                <label className="block text-sm font-medium">
+                  Alcohol Label Image
+                </label>
+
+                <label className="mt-2 flex min-h-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition hover:border-blue-400 hover:bg-blue-50">
+                  <div className="text-4xl">📄</div>
+
+                  <div className="mt-3 text-lg font-semibold text-slate-700">
+                    {files.length > 0
+                      ? `${files.length} file(s) selected`
+                      : "Click here to upload label image(s)"}
+                  </div>
+
+                  <div className="mt-2 text-sm text-slate-500">
+                    PNG, JPG, or JPEG supported. Multiple files allowed for batch review.
+                  </div>
+
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/png,image/jpeg,image/jpg"
+                    onChange={(e) =>
+                      setFiles(Array.from(e.target.files || []))
+                    }
+                    className="hidden"
+                  />
+                </label>
+
+                {files.length > 0 && (
+                  <div className="mt-3 rounded-lg bg-green-50 p-3">
+                    <div className="mb-2 text-sm font-semibold text-green-700">
+                      ✓ Selected Files
+                    </div>
+                    <ul className="space-y-1 text-sm text-green-700">
+                      {files.map((file) => (
+                        <li key={file.name}>{file.name}</li>
+                      ))}
+                    </ul>
+
+                    <button
+                      type="button"
+                      onClick={() => setFiles([])}
+                      className="mt-3 text-sm font-medium text-red-600 hover:text-red-700"
+                    >
+                      Remove all
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium">Alcohol Content</label>
-                <input
-                  value={abv}
-                  onChange={(e) => setAbv(e.target.value)}
-                  className="mt-2 w-full rounded-lg border border-slate-300 p-3"
-                  placeholder="45%"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">Net Contents</label>
-                <input
-                  value={netContents}
-                  onChange={(e) => setNetContents(e.target.value)}
-                  className="mt-2 w-full rounded-lg border border-slate-300 p-3"
-                  placeholder="750 mL"
-                />
-              </div>
+              <Input label="Brand Name" value={brandName} setValue={setBrandName} placeholder="OLD TOM DISTILLERY" />
+              <Input label="Class / Type Designation" value={classType} setValue={setClassType} placeholder="Kentucky Straight Bourbon Whiskey" />
+              <Input label="Alcohol Content" value={abv} setValue={setAbv} placeholder="45%" />
+              <Input label="Net Contents" value={netContents} setValue={setNetContents} placeholder="750 mL" />
+              <Input label="Producer / Bottler" value={producer} setValue={setProducer} placeholder="Bottled by Old Tom Distillery" />
+              <Input label="Country of Origin" value={countryOfOrigin} setValue={setCountryOfOrigin} placeholder="Product of Mexico" />
 
               {error && (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -182,87 +220,66 @@ export default function Home() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:bg-slate-400"
-              >
-                {loading ? "Verifying..." : "Verify Label"}
-              </button>
+              <div className="grid gap-3 md:grid-cols-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:bg-slate-400"
+                >
+                  {loading ? "Verifying..." : "Verify First Label"}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={handleBatchVerify}
+                  className="rounded-lg bg-slate-800 px-4 py-3 font-semibold text-white hover:bg-slate-900 disabled:bg-slate-400"
+                >
+                  {loading ? "Processing..." : "Batch Verify"}
+                </button>
+              </div>
             </form>
           </section>
 
           <section className="rounded-xl bg-white p-6 shadow">
             <h2 className="text-xl font-semibold">Verification Result</h2>
 
-            {!result && (
+            {!result && !batchResult && (
               <div className="mt-6 rounded-lg border border-dashed border-slate-300 p-8 text-center text-slate-500">
-                Upload a label and run verification to see results.
+                Upload label image(s) and run verification to see results.
               </div>
             )}
 
-            {result && (
-              <div className="mt-6 space-y-5">
-                <div
-                  className={`rounded-xl p-5 ${
-                    status === "PASS"
-                      ? "bg-green-50 text-green-800"
-                      : "bg-yellow-50 text-yellow-800"
-                  }`}
-                >
-                  <p className="text-sm font-medium">Overall Status</p>
-                  <p className="mt-1 text-3xl font-bold">{status}</p>
-                  <p className="mt-1 text-sm">Compliance Score: {score}%</p>
+            {result && <SingleResult result={result} />}
+
+            {batchResult && (
+              <div className="mt-6">
+                <div className="rounded-xl bg-blue-50 p-5 text-blue-800">
+                  <p className="text-sm font-medium">Batch Processed</p>
+                  <p className="mt-1 text-3xl font-bold">
+                    {batchResult.total_files} file(s)
+                  </p>
                 </div>
 
-                <div className="overflow-hidden rounded-lg border border-slate-200">
+                <div className="mt-5 overflow-hidden rounded-lg border border-slate-200">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-slate-50">
                       <tr>
-                        <th className="p-3">Field</th>
-                        <th className="p-3">Expected</th>
-                        <th className="p-3">Found</th>
-                        <th className="p-3">Result</th>
+                        <th className="p-3">Filename</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3">Score</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <ResultRow
-                        field="Brand Name"
-                        expected={result.verification.expected.brand_name}
-                        found={result.verification.found.brand_name}
-                        check={result.verification.checks.brand_name}
-                      />
-                      <ResultRow
-                        field="ABV"
-                        expected={result.verification.expected.abv}
-                        found={result.verification.found.abv}
-                        check={result.verification.checks.abv}
-                      />
-                      <ResultRow
-                        field="Net Contents"
-                        expected={result.verification.expected.net_contents}
-                        found={result.verification.found.net_contents}
-                        check={result.verification.checks.net_contents}
-                      />
-                      <ResultRow
-                        field="Government Warning"
-                        expected="Required"
-                        found={
-                          result.verification.found.government_warning.found
-                            ? "Detected"
-                            : "Missing"
-                        }
-                        check={result.verification.checks.government_warning}
-                      />
+                      {batchResult.results.map((item) => (
+                        <tr key={item.filename} className="border-t border-slate-200">
+                          <td className="p-3 font-medium">{item.filename}</td>
+                          <td className="p-3">{item.overall_status}</td>
+                          <td className="p-3">{item.compliance_score}%</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold">OCR Text</h3>
-                  <pre className="mt-2 max-h-72 overflow-auto rounded-lg bg-slate-900 p-4 text-sm text-slate-100">
-                    {result.ocr_text}
-                  </pre>
                 </div>
               </div>
             )}
@@ -272,6 +289,88 @@ export default function Home() {
     </main>
   );
 }
+
+
+function Input({
+  label,
+  value,
+  setValue,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  setValue: (value: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium">{label}</label>
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="mt-2 w-full rounded-lg border border-slate-300 p-3"
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
+
+function SingleResult({ result }: { result: VerificationResponse }) {
+  const status = result.verification.overall_status;
+  const score = result.verification.compliance_score;
+
+  return (
+    <div className="mt-6 space-y-5">
+      <div
+        className={`rounded-xl p-5 ${
+          status === "PASS"
+            ? "bg-green-50 text-green-800"
+            : "bg-yellow-50 text-yellow-800"
+        }`}
+      >
+        <p className="text-sm font-medium">Overall Status</p>
+        <p className="mt-1 text-3xl font-bold">{status}</p>
+        <p className="mt-1 text-sm">Compliance Score: {score}%</p>
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-slate-200">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-50">
+            <tr>
+              <th className="p-3">Field</th>
+              <th className="p-3">Expected</th>
+              <th className="p-3">Found</th>
+              <th className="p-3">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ResultRow field="Brand Name" expected={result.verification.expected.brand_name} found={result.verification.found.brand_name} check={result.verification.checks.brand_name} />
+            <ResultRow field="Class / Type" expected={result.verification.expected.class_type} found={result.verification.found.class_type} check={result.verification.checks.class_type} />
+            <ResultRow field="ABV" expected={result.verification.expected.abv} found={result.verification.found.abv} check={result.verification.checks.abv} />
+            <ResultRow field="Net Contents" expected={result.verification.expected.net_contents} found={result.verification.found.net_contents} check={result.verification.checks.net_contents} />
+            <ResultRow field="Producer / Bottler" expected={result.verification.expected.producer} found={result.verification.found.producer} check={result.verification.checks.producer} />
+            <ResultRow field="Country of Origin" expected={result.verification.expected.country_of_origin} found={result.verification.found.country_of_origin} check={result.verification.checks.country_of_origin} />
+            <ResultRow
+              field="Government Warning"
+              expected="Required"
+              found={result.verification.found.government_warning.found ? "Detected" : "Missing"}
+              check={result.verification.checks.government_warning}
+            />
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3 className="font-semibold">OCR Text</h3>
+        <pre className="mt-2 max-h-72 overflow-auto rounded-lg bg-slate-900 p-4 text-sm text-slate-100">
+          {result.ocr_text}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 
 function ResultRow({
   field,
@@ -287,7 +386,7 @@ function ResultRow({
   return (
     <tr className="border-t border-slate-200">
       <td className="p-3 font-medium">{field}</td>
-      <td className="p-3">{expected}</td>
+      <td className="p-3">{expected || "Not provided"}</td>
       <td className="p-3">{found || "Not detected"}</td>
       <td className="p-3">
         <span
