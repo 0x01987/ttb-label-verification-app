@@ -71,7 +71,7 @@ export default function Home() {
       const data = await response.json();
       setResult(data);
     } catch {
-      setError("Unable to verify label. Make sure the FastAPI backend is running on port 8001.");
+      setError("Unable to verify label. Make sure the deployed API is reachable.");
     } finally {
       setLoading(false);
     }
