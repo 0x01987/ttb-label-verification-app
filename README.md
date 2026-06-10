@@ -42,6 +42,31 @@ https://github.com/0x01987/ttb-label-verification-app
 
 ---
 
+## Sample Test Scenarios
+
+### Scenario 1 - Matching Label
+
+Expected:
+- Brand Name: MALT & HOP
+- ABV: 5%
+- Net Contents: 1 PINT
+
+Result:
+- PASS
+
+### Scenario 2 - Mismatched ABV
+
+Expected:
+- ABV: 6%
+
+Detected:
+- ABV: 5%
+
+Result:
+- REVIEW
+
+---
+
 ## Features
 
 ### OCR-Based Label Analysis
