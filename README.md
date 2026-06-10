@@ -136,34 +136,6 @@ flowchart TD
     F --> G[PASS / REVIEW]
 ```
 
-## Architecture
-
-User Uploads Label Image
-
-↓
-
-Frontend (Next.js)
-
-↓
-
-Backend API (FastAPI)
-
-↓
-
-OCR Extraction
-
-↓
-
-Field Parsing & Validation
-
-↓
-
-Compliance Scoring
-
-↓
-
-PASS / REVIEW Result
-
 ---
 
 ## Validation Workflow
