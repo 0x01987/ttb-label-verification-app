@@ -59,7 +59,7 @@ export default function Home() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://127.0.0.1:8001/verify", {
+      const response = await fetch("https://ttb-label-verification-app-api.onrender.com/verify", {
         method: "POST",
         body: formData,
       });
