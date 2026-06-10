@@ -21,10 +21,4 @@ Consumption of alcoholic beverages impairs your ability to drive a car or operat
 """
 
     results = reader.readtext(image_path)
-
-    extracted_text = []
-
-    for result in results:
-        extracted_text.append(result[1])
-
-    return "\n".join(extracted_text)
+    return "\n".join([result[1] for result in results])
