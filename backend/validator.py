@@ -22,6 +22,9 @@ def normalize(value: str):
 
 
 def fuzzy_match(expected: str, found: str, threshold: int = 85):
+    if not expected:
+        return {"match": True, "score": 100}
+
     score = fuzz.ratio(normalize(expected), normalize(found))
     return {
         "match": score >= threshold,
@@ -78,12 +81,17 @@ def extract_brand_name(text: str):
         "ALC",
         "VOL",
         "PINT",
-        "ML"
+        "ML",
+        "BOTTLED BY",
+        "PRODUCED BY",
+        "IMPORTED BY",
+        "PRODUCT OF",
+        "MADE IN"
     ]
 
     candidates = []
 
-    for line in lines[:8]:
+    for line in lines[:10]:
         upper = line.upper()
         if any(word in upper for word in skip_words):
             continue
@@ -91,8 +99,75 @@ def extract_brand_name(text: str):
             continue
         candidates.append(line)
 
-    if candidates:
-        return candidates[0]
+    return candidates[0] if candidates else None
+
+
+def extract_class_type(text: str):
+    class_types = [
+        "KENTUCKY STRAIGHT BOURBON WHISKEY",
+        "BOURBON WHISKEY",
+        "STRAIGHT BOURBON",
+        "WHISKEY",
+        "WHISKY",
+        "VODKA",
+        "RUM",
+        "GIN",
+        "TEQUILA",
+        "BRANDY",
+        "IPA",
+        "ALE",
+        "LAGER",
+        "PILSNER",
+        "CABERNET SAUVIGNON",
+        "CABERNET",
+        "MERLOT",
+        "CHARDONNAY",
+        "SAUVIGNON BLANC"
+    ]
+
+    upper = text.upper()
+
+    for item in class_types:
+        if item in upper:
+            return item.title()
+
+    return None
+
+
+def extract_producer(text: str):
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+
+    keywords = [
+        "BOTTLED BY",
+        "PRODUCED BY",
+        "PRODUCED AND BOTTLED BY",
+        "IMPORTED BY",
+        "MANUFACTURED BY",
+        "BREWED BY"
+    ]
+
+    for line in lines:
+        upper = line.upper()
+        for keyword in keywords:
+            if keyword in upper:
+                return line
+
+    return None
+
+
+def extract_country_of_origin(text: str):
+    patterns = [
+        r"PRODUCT OF\s+([A-Z ]+)",
+        r"MADE IN\s+([A-Z ]+)",
+        r"IMPORTED FROM\s+([A-Z ]+)"
+    ]
+
+    upper = text.upper()
+
+    for pattern in patterns:
+        match = re.search(pattern, upper)
+        if match:
+            return match.group(1).strip().title()
 
     return None
 
@@ -114,8 +189,11 @@ def check_government_warning(text: str):
 def analyze_label(text: str):
     return {
         "brand_name": extract_brand_name(text),
+        "class_type": extract_class_type(text),
         "abv": extract_abv(text),
         "net_contents": extract_net_contents(text),
+        "producer": extract_producer(text),
+        "country_of_origin": extract_country_of_origin(text),
         "government_warning": check_government_warning(text)
     }
 
@@ -123,48 +201,26 @@ def analyze_label(text: str):
 def verify_label(text: str, expected: dict):
     analysis = analyze_label(text)
 
-    brand_result = fuzzy_match(
-        expected.get("brand_name", ""),
-        analysis.get("brand_name") or "",
-        threshold=75
-    )
+    checks = {
+        "brand_name": fuzzy_match(expected.get("brand_name", ""), analysis.get("brand_name") or "", 75),
+        "class_type": fuzzy_match(expected.get("class_type", ""), analysis.get("class_type") or "", 75),
+        "abv": fuzzy_match(expected.get("abv", ""), analysis.get("abv") or "", 90),
+        "net_contents": fuzzy_match(expected.get("net_contents", ""), analysis.get("net_contents") or "", 85),
+        "producer": fuzzy_match(expected.get("producer", ""), analysis.get("producer") or "", 75),
+        "country_of_origin": fuzzy_match(expected.get("country_of_origin", ""), analysis.get("country_of_origin") or "", 75),
+        "government_warning": {
+            "match": analysis["government_warning"]["found"],
+            "score": 100 if analysis["government_warning"]["found"] else 0
+        }
+    }
 
-    abv_result = fuzzy_match(
-        expected.get("abv", ""),
-        analysis.get("abv") or "",
-        threshold=90
-    )
-
-    net_contents_result = fuzzy_match(
-        expected.get("net_contents", ""),
-        analysis.get("net_contents") or "",
-        threshold=85
-    )
-
-    warning_valid = analysis["government_warning"]["found"]
-
-    checks = [
-        brand_result["match"],
-        abv_result["match"],
-        net_contents_result["match"],
-        warning_valid
-    ]
-
-    passed_count = sum(1 for check in checks if check)
+    passed_count = sum(1 for check in checks.values() if check["match"])
     compliance_score = int((passed_count / len(checks)) * 100)
 
     return {
         "expected": expected,
         "found": analysis,
-        "checks": {
-            "brand_name": brand_result,
-            "abv": abv_result,
-            "net_contents": net_contents_result,
-            "government_warning": {
-                "match": warning_valid,
-                "score": 100 if warning_valid else 0
-            }
-        },
+        "checks": checks,
         "compliance_score": compliance_score,
         "overall_status": "PASS" if compliance_score == 100 else "REVIEW"
     }
