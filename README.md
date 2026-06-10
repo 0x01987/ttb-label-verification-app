@@ -26,6 +26,22 @@ https://github.com/0x01987/ttb-label-verification-app
 
 ---
 
+## Screenshots
+
+### Upload & Verification
+
+![Upload](docs/screenshots/upload.png)
+
+### Verification Results
+
+![Results](docs/screenshots/results.png)
+
+### Batch Verification
+
+![Batch](docs/screenshots/batch.png)
+
+---
+
 ## Features
 
 ### OCR-Based Label Analysis
