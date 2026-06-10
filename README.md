@@ -124,6 +124,18 @@ Backend:
 
 ---
 
+## Architecture Diagram
+
+```mermaid
+flowchart TD
+    A[User] --> B[Next.js Frontend]
+    B --> C[FastAPI API]
+    C --> D[OCR Engine]
+    D --> E[Field Extraction]
+    E --> F[Compliance Validation]
+    F --> G[PASS / REVIEW]
+```
+
 ## Architecture
 
 User Uploads Label Image
