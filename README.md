@@ -244,6 +244,37 @@ http://localhost:3000
 
 ---
 
+## Stakeholder Requirements Addressed
+
+### Sarah Chen
+- Automated label verification
+- Simple user interface
+- Batch processing support
+
+### Dave Morrison
+- Fuzzy matching to reduce false mismatches
+- Human review workflow through REVIEW status
+
+### Jenny Park
+- Government Warning validation
+- Automated extraction of common label elements
+
+### Marcus Williams
+- Standalone proof-of-concept
+- No dependency on COLA integration
+- Cloud-deployable architecture
+
+---
+
+## Known Limitations
+
+- Prototype uses rule-based extraction.
+- Government warning validation checks content presence rather than formatting attributes.
+- Local environment uses EasyOCR; deployed demo uses OCR simulation mode due free-tier hosting limitations.
+- Prototype does not currently integrate with COLA.
+
+---
+
 ## Assumptions
 
 The following assumptions were made during development:
