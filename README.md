@@ -24,6 +24,28 @@ https://github.com/0x01987/ttb-label-verification-app
 
 ---
 
+## Architecture Diagram
+
+```mermaid
+flowchart LR
+    A[User]
+    B[Next.js Frontend]
+    C[FastAPI Backend]
+    D[OCR.space API]
+    E[Field Extraction]
+    F[Compliance Validation]
+    G[Compliance Score]
+    H[PASS / REVIEW]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+```
+
 ## Design Approach
 
 This prototype was intentionally designed as a lightweight, standalone proof-of-concept rather than a full COLA system integration.
@@ -122,20 +144,6 @@ REVIEW Criteria:
 ### Deployment
 - Vercel
 - Render
-
----
-
-## Architecture Diagram
-
-```mermaid
-flowchart TD
-    A[User] --> B[Next.js Frontend]
-    B --> C[FastAPI API]
-    C --> D[OCR Engine]
-    D --> E[Field Extraction]
-    E --> F[Compliance Validation]
-    F --> G[PASS / REVIEW]
-```
 
 ---
 
