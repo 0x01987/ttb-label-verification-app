@@ -1,6 +1,6 @@
 # 🍺TTB Label Verification App
 
-## Executive Summary
+## 📋Executive Summary
 
 The TTB Label Verification App is an AI-assisted compliance review prototype that automates routine alcohol label verification tasks currently performed manually by compliance agents.
 
@@ -8,7 +8,7 @@ The application extracts information from uploaded alcohol label images, identif
 
 ---
 
-## Live Demo
+## 🌐Live Demo
 
 ### Frontend Application
 
@@ -24,7 +24,7 @@ https://github.com/0x01987/ttb-label-verification-app
 
 ---
 
-## Architecture Diagram
+## 🏗️Architecture Diagram
 
 ```mermaid
 flowchart LR
@@ -62,7 +62,7 @@ The implementation favors simplicity, maintainability, and reviewer usability ov
 
 ---
 
-## Screenshots
+## 📸Screenshots
 
 ### Upload & Verification
 
@@ -107,7 +107,7 @@ REVIEW Criteria:
 
 ---
 
-## Features
+## ⭐Features
 
 - OCR-based label extraction
 - Label image preview
@@ -123,7 +123,7 @@ REVIEW Criteria:
 
 ---
 
-## Technology Stack
+## 🛠️Technology Stack
 
 ### Frontend
 
@@ -147,7 +147,7 @@ REVIEW Criteria:
 
 ---
 
-## Validation Workflow
+## 🔄Validation Workflow
 
 1. Upload label image.
 2. Preview uploaded label.
@@ -160,7 +160,7 @@ REVIEW Criteria:
 
 ---
 
-## Supported Fields
+## ✅Supported Fields
 
 | Field                        | Supported |
 | ---------------------------- | --------- |
@@ -178,7 +178,7 @@ REVIEW Criteria:
 
 ---
 
-## Local Development Setup
+## 💻Local Development Setup
 
 ## Getting Started
 
@@ -196,13 +196,13 @@ cd ttb-label-verification-app
 
 Follow the Backend Setup and Frontend Setup instructions below to run the application locally.
 
-### Prerequisites
+### 🔧Prerequisites
 
 * Python 3.11+
 * Node.js 20+
 * npm
 
-### Backend Setup
+### ⚙️Backend Setup
 
 ```bash
 cd backend
@@ -218,7 +218,7 @@ API Documentation:
 http://127.0.0.1:8001/docs
 ```
 
-### Frontend Setup
+### 🎨Frontend Setup
 
 ```bash
 cd frontend
@@ -260,7 +260,7 @@ http://localhost:3000
 
 ---
 
-## Known Limitations
+## ⚠️Known Limitations
 
 - Rule-based validation logic.
 - OCR accuracy depends on image quality.
@@ -301,7 +301,7 @@ The validation engine is OCR-provider agnostic and can be extended to support en
 
 ---
 
-## Future Enhancements
+## 🔮Future Enhancements
 
 * Production-grade OCR deployment
 * Image preprocessing using OpenCV
@@ -333,7 +333,7 @@ These design choices were informed by stakeholder interviews and intended to sup
 
 ---
 
-## Author
+## 👤Author
 
 Dinel Bun
 
