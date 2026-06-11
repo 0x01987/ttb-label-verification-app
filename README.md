@@ -115,8 +115,6 @@ If one or more required fields do not match expected values, the system returns 
 
 ---
 
-## Sample Test Scenarios
-
 ## Compliance Review Rules
 
 The application automatically marks a label as REVIEW if any required label element cannot be detected.
@@ -145,6 +143,8 @@ REVIEW Criteria:
 - OCR unable to identify required information
 
 ---
+
+## Sample Test Scenarios
 
 ### Scenario 1 - Matching Label
 
