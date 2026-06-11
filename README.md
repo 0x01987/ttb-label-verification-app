@@ -262,6 +262,13 @@ http://localhost:3000
 
 ---
 
+## Trade-offs
+
+This prototype prioritizes rapid verification of common label elements and workflow automation.
+Government warning validation currently focuses on content detection rather than typography, formatting, or placement requirements. These checks could be incorporated in a production implementation using advanced OCR layout analysis.
+
+---
+
 ## Assumptions
 
 * Labels are submitted as image files.
