@@ -345,6 +345,22 @@ flowchart TD
 
 ## Local Development Setup
 
+## Getting Started
+
+Clone the repository:
+
+```bash
+git clone https://github.com/0x01987/ttb-label-verification-app.git
+```
+
+Navigate to the project directory:
+
+```bash
+cd ttb-label-verification-app
+```
+
+Follow the Backend Setup and Frontend Setup instructions below to run the application locally.
+
 ### Prerequisites
 
 * Python 3.11+
