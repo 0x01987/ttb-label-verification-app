@@ -22,18 +22,35 @@ def normalize(value: str):
 
 
 def fuzzy_match(expected: str, found: str, threshold: int = 85):
+    score = fuzz.ratio(normalize(expected), normalize(found))
+    return {
+        "match": score >= threshold,
+        "score": score
+    }
+
+
+def required_field_check(found_value):
+    is_detected = bool(found_value)
+    return {
+        "match": is_detected,
+        "score": 100 if is_detected else 0
+    }
+
+
+def compare_or_required(expected: str, found: str, threshold: int = 85):
+    if not found:
+        return {
+            "match": False,
+            "score": 0
+        }
+
     if not expected:
         return {
             "match": True,
             "score": 100
         }
 
-    score = fuzz.ratio(normalize(expected), normalize(found))
-
-    return {
-        "match": score >= threshold,
-        "score": score
-    }
+    return fuzzy_match(expected, found, threshold)
 
 
 def extract_abv(text: str):
@@ -237,32 +254,32 @@ def verify_label(text: str, expected: dict):
     analysis = analyze_label(text)
 
     checks = {
-        "brand_name": fuzzy_match(
+        "brand_name": compare_or_required(
             expected.get("brand_name", ""),
             analysis.get("brand_name") or "",
             75
         ),
-        "class_type": fuzzy_match(
+        "class_type": compare_or_required(
             expected.get("class_type", ""),
             analysis.get("class_type") or "",
             75
         ),
-        "abv": fuzzy_match(
+        "abv": compare_or_required(
             expected.get("abv", ""),
             analysis.get("abv") or "",
             90
         ),
-        "net_contents": fuzzy_match(
+        "net_contents": compare_or_required(
             expected.get("net_contents", ""),
             analysis.get("net_contents") or "",
             85
         ),
-        "producer": fuzzy_match(
+        "producer": compare_or_required(
             expected.get("producer", ""),
             analysis.get("producer") or "",
             75
         ),
-        "country_of_origin": fuzzy_match(
+        "country_of_origin": compare_or_required(
             expected.get("country_of_origin", ""),
             analysis.get("country_of_origin") or "",
             75
@@ -278,11 +295,7 @@ def verify_label(text: str, expected: dict):
     passed_count = sum(1 for check in checks.values() if check["match"])
     compliance_score = int((passed_count / len(checks)) * 100)
 
-    overall_status = (
-        "PASS"
-        if compliance_score == 100 and len(missing_required_fields) == 0
-        else "REVIEW"
-    )
+    overall_status = "PASS" if len(missing_required_fields) == 0 and compliance_score == 100 else "REVIEW"
 
     return {
         "expected": expected,
