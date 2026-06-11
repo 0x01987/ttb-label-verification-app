@@ -64,32 +64,18 @@ flowchart LR
 
 ---
 
-## Compliance Review Rules
+## ✅ Compliance Review Rules
 
-The application automatically marks a label as REVIEW if any required label element cannot be detected.
+The application evaluates extracted label information and generates a PASS or REVIEW recommendation.
 
-Required fields include:
+A label receives **PASS** when all required fields are detected and validation checks succeed.
 
-- Brand Name
-- Class / Type Designation
-- Alcohol Content (ABV)
-- Net Contents
-- Producer / Bottler Information
-- Country of Origin
-- Government Health Warning Statement
+A label receives **REVIEW** when:
 
-PASS Criteria:
-
-- All required fields detected
-- Government warning detected
-- Application comparisons pass when values are provided
-
-REVIEW Criteria:
-
-- Missing required field(s)
-- Missing government warning
-- Mismatched application data
-- OCR unable to identify required information
+* Required label elements are missing
+* Government warning is not detected
+* Application data does not match detected label information
+* OCR cannot reliably extract required information
 
 ---
 
