@@ -50,30 +50,6 @@ The implementation favors simplicity, maintainability, and reviewer usability ov
 
 ---
 
-## Repository Structure
-
-```text
-ttb-label-verification-app/
-├── backend/
-│   ├── main.py
-│   ├── validator.py
-│   ├── ocr.py
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── app/
-│   ├── public/
-│   └── package.json
-│
-├── docs/
-│   └── screenshots/
-│
-├── README.md
-└── .gitignore
-```
-
----
-
 ## Screenshots
 
 ### Upload & Verification
@@ -176,78 +152,17 @@ Result:
 
 ## Features
 
-### OCR-Based Label Analysis
-
-Extracts text from alcohol beverage labels using OCR technology.
-
-### Required Label Element Detection
-
-The application identifies and validates:
-
-* Brand Name
-* Class / Type Designation
-* Alcohol Content (ABV)
-* Net Contents
-* Producer / Bottler Information
-* Country of Origin
-* Government Health Warning Statement
-
-### Application Verification
-
-Compares extracted label information against expected values provided by the user.
-
-### Fuzzy Matching
-
-Supports minor variations in capitalization, punctuation, and formatting to reduce false mismatches.
-
-Example:
-
-* STONE'S THROW
-* Stone's Throw
-
-### Compliance Scoring
-
-Generates:
-
-* Field-level validation results
-* Compliance score
-* PASS / REVIEW recommendation
-
-### Batch Verification
-
-Supports uploading multiple labels for batch processing and review.
-
-### Country of Origin Normalization
-
-Supports common country-of-origin label wording including:
-
-* Product of Canada
-* Produced in Canada
-* Made in Canada
-* Imported from Canada
-
-These variations are normalized and evaluated as equivalent country-of-origin information during compliance review.
-
----
-
-### Label Image Preview
-
-Displays uploaded label images before OCR analysis so reviewers can confirm the correct label was selected.
-
-### Missing Required Field Detection
-
-Automatically identifies missing TTB-required label elements and generates REVIEW recommendations when required information cannot be detected.
-
-### Scan-First Workflow
-
-Supports a reviewer-friendly workflow:
-
-1. Upload label image
-2. Preview uploaded label
-3. Scan label
-4. Extract label information
-5. Validate required fields
-6. Generate PASS / REVIEW recommendation
+- OCR-based label extraction
+- Label image preview
+- Scan-first workflow
+- Required field detection
+- Government warning validation
+- Application data comparison
+- Country of origin normalization
+- Missing required field detection
+- Compliance scoring
+- PASS / REVIEW recommendations
+- Batch verification
 
 ---
 
@@ -255,46 +170,23 @@ Supports a reviewer-friendly workflow:
 
 ### Frontend
 
-* Next.js
-* TypeScript
-* React
-* Tailwind CSS
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
 
 ### Backend
-
-* FastAPI
-* Python
-* RapidFuzz
-
----
+- FastAPI
+- Python
+- RapidFuzz
 
 ### OCR
-
-Development Environment:
-
-* EasyOCR
-
-Hosted Demonstration Environment:
-
-* OCR.space API
-
-Features:
-
-* Live OCR extraction from uploaded label images
-* Real-time text recognition
-* OCR fallback architecture for future provider replacement
-
----
+- OCR.space API (hosted)
+- EasyOCR (local development)
 
 ### Deployment
-
-Frontend:
-
-* Vercel
-
-Backend:
-
-* Render
+- Vercel
+- Render
 
 ---
 
@@ -314,12 +206,12 @@ flowchart TD
 
 ## Validation Workflow
 
-1. User uploads a label image.
-2. Uploaded label is previewed.
-3. OCR extracts text from the label.
-4. Required TTB label elements are identified.
-5. Missing required fields are detected.
-6. Extracted values are optionally compared against application data.
+1. Upload label image.
+2. Preview uploaded label.
+3. OCR extracts label text.
+4. Required fields are identified.
+5. Missing fields are detected.
+6. Application data is optionally compared.
 7. Compliance score is calculated.
 8. PASS or REVIEW recommendation is returned.
 
@@ -427,12 +319,11 @@ http://localhost:3000
 
 ## Known Limitations
 
-* Prototype uses rule-based extraction.
-* Government warning validation currently focuses on content presence rather than exact formatting, typography, placement, or font requirements.
-* Local development uses EasyOCR while the hosted application uses OCR.space API for live OCR extraction.
-* OCR accuracy depends on image quality, label design, and text readability.
-* OCR.space API availability and rate limits may impact processing during periods of heavy usage.
-* Prototype does not currently integrate with COLA.
+- Rule-based validation logic.
+- OCR accuracy depends on image quality.
+- Government warning validation focuses on content detection.
+- Prototype does not integrate with COLA.
+- OCR.space API availability may affect processing.
 
 ---
 
