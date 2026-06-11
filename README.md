@@ -24,7 +24,7 @@ https://github.com/0x01987/ttb-label-verification-app
 
 ---
 
-## 🏗️Architecture Diagram
+## 🏗️ Architecture Diagram
 
 ```mermaid
 flowchart LR
@@ -45,20 +45,6 @@ flowchart LR
     F --> G
     G --> H
 ```
-
-## Design Approach
-
-This prototype was intentionally designed as a lightweight, standalone proof-of-concept rather than a full COLA system integration.
-
-Key design goals included:
-
-* Minimize reviewer effort through automated field extraction and comparison.
-* Support non-technical users through a simple, guided interface.
-* Provide transparent PASS/REVIEW recommendations rather than opaque AI decisions.
-* Maintain fast response times for high-volume review scenarios.
-* Demonstrate a deployable architecture that could be expanded for future enterprise integration.
-
-The implementation favors simplicity, maintainability, and reviewer usability over complex machine learning pipelines.
 
 ---
 
@@ -232,31 +218,23 @@ Application URL:
 http://localhost:3000
 ```
 
----
+## 🧭 Approach, Tools, and Assumptions
 
-## Stakeholder Requirements Addressed
+### Approach
+This prototype uses a scan-first workflow. Users upload an alcohol label image, preview it, run OCR, extract required TTB label elements, and receive a PASS or REVIEW recommendation. Application values may optionally be entered to compare submitted data against detected label information.
 
-### Sarah Chen
+### Tools Used
+- Frontend: Next.js, React, TypeScript, Tailwind CSS
+- Backend: FastAPI, Python
+- OCR: OCR.space API for hosted OCR, EasyOCR for local development
+- Validation: RapidFuzz and rule-based parsing
+- Deployment: Vercel and Render
 
-* Automated label verification
-* Simple user interface
-* Batch processing support
-
-### Dave Morrison
-
-* Fuzzy matching to reduce false mismatches
-* Human review workflow through REVIEW status
-
-### Jenny Park
-
-* Government Warning validation
-* Automated extraction of common label elements
-
-### Marcus Williams
-
-* Standalone proof-of-concept
-* No dependency on COLA integration
-* Cloud-deployable architecture
+### Assumptions
+- Labels are submitted as image files.
+- OCR accuracy depends on image quality.
+- This prototype is standalone and does not integrate with COLA.
+- Government warning validation focuses on content detection, not typography or placement.
 
 ---
 
@@ -275,17 +253,6 @@ http://localhost:3000
 This prototype prioritizes rapid verification of common label elements and workflow automation.
 
 Government warning validation currently focuses on content detection rather than typography, formatting, or placement requirements. These checks could be incorporated in a production implementation using advanced OCR layout analysis.
-
----
-
-## Assumptions
-
-* Labels are submitted as image files.
-* OCR text quality is sufficient for extraction.
-* Government warning validation focuses on required content presence.
-* Fuzzy matching is appropriate for minor formatting variations.
-* Prototype focuses on common TTB-required label elements.
-* This application is intended as a proof-of-concept and does not integrate directly with the COLA system.
 
 ---
 
@@ -313,23 +280,6 @@ The validation engine is OCR-provider agnostic and can be extended to support en
 * Azure Government deployment
 * Agent review dashboard
 * Historical review analytics
-
----
-
-## Design Considerations
-
-The user interface was intentionally designed to support users with varying levels of technical proficiency.
-
-Key goals included:
-
-* Minimal clicks
-* Large upload area
-* Clear PASS / REVIEW indicators
-* Simple data entry
-* Fast response times
-* Easy batch processing
-
-These design choices were informed by stakeholder interviews and intended to support both experienced and less technical compliance reviewers.
 
 ---
 
