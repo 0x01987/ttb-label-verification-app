@@ -12,6 +12,28 @@ GOV_WARNING_KEYWORDS = [
     "health problems"
 ]
 
+COUNTRIES = [
+    "CANADA",
+    "UNITED STATES",
+    "UNITED STATES OF AMERICA",
+    "USA",
+    "U.S.A.",
+    "MEXICO",
+    "FRANCE",
+    "ITALY",
+    "GERMANY",
+    "SPAIN",
+    "PORTUGAL",
+    "IRELAND",
+    "SCOTLAND",
+    "ENGLAND",
+    "JAPAN",
+    "AUSTRALIA",
+    "NEW ZEALAND",
+    "CHILE",
+    "ARGENTINA"
+]
+
 
 def normalize(value: str):
     if not value:
@@ -29,14 +51,6 @@ def fuzzy_match(expected: str, found: str, threshold: int = 85):
     }
 
 
-def required_field_check(found_value):
-    is_detected = bool(found_value)
-    return {
-        "match": is_detected,
-        "score": 100 if is_detected else 0
-    }
-
-
 def compare_or_required(expected: str, found: str, threshold: int = 85):
     if not found:
         return {
@@ -51,6 +65,27 @@ def compare_or_required(expected: str, found: str, threshold: int = 85):
         }
 
     return fuzzy_match(expected, found, threshold)
+
+
+def clean_country(value: str):
+    if not value:
+        return None
+
+    value = value.upper().strip()
+
+    value = re.sub(
+        r"\b(BY|FOR|UNDER|WITH|AT|AND|FROM|BOTTLED|PRODUCED|BREWED|DISTILLED|IMPORTED)\b.*",
+        "",
+        value
+    ).strip()
+
+    for country in COUNTRIES:
+        if country in value:
+            if country in ["USA", "U.S.A.", "UNITED STATES OF AMERICA"]:
+                return "United States"
+            return country.title()
+
+    return value.title() if value else None
 
 
 def extract_abv(text: str):
@@ -105,6 +140,7 @@ def extract_brand_name(text: str):
         "ML",
         "BOTTLED BY",
         "PRODUCED BY",
+        "PRODUCED IN",
         "IMPORTED BY",
         "PRODUCT OF",
         "MADE IN"
@@ -181,18 +217,32 @@ def extract_producer(text: str):
 
 
 def extract_country_of_origin(text: str):
-    patterns = [
-        r"PRODUCT OF\s+([A-Z ]+)",
-        r"MADE IN\s+([A-Z ]+)",
-        r"IMPORTED FROM\s+([A-Z ]+)"
-    ]
-
     upper = text.upper()
+
+    patterns = [
+        r"PRODUCT OF\s+([A-Z .]+)",
+        r"MADE IN\s+([A-Z .]+)",
+        r"IMPORTED FROM\s+([A-Z .]+)",
+        r"PRODUCED IN\s+([A-Z .]+)",
+        r"BREWED IN\s+([A-Z .]+)",
+        r"DISTILLED IN\s+([A-Z .]+)",
+        r"CRAFTED IN\s+([A-Z .]+)",
+        r"COUNTRY OF ORIGIN[:\s]+([A-Z .]+)"
+    ]
 
     for pattern in patterns:
         match = re.search(pattern, upper)
+
         if match:
-            return match.group(1).strip().title()
+            country = clean_country(match.group(1))
+            if country:
+                return country
+
+    for country in COUNTRIES:
+        if f" {country} " in f" {upper} ":
+            if country in ["USA", "U.S.A.", "UNITED STATES OF AMERICA"]:
+                return "United States"
+            return country.title()
 
     return None
 
@@ -295,7 +345,11 @@ def verify_label(text: str, expected: dict):
     passed_count = sum(1 for check in checks.values() if check["match"])
     compliance_score = int((passed_count / len(checks)) * 100)
 
-    overall_status = "PASS" if len(missing_required_fields) == 0 and compliance_score == 100 else "REVIEW"
+    overall_status = (
+        "PASS"
+        if len(missing_required_fields) == 0 and compliance_score == 100
+        else "REVIEW"
+    )
 
     return {
         "expected": expected,
