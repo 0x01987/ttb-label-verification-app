@@ -1,4 +1,4 @@
-🍺 # TTB Label Verification App
+🍺 TTB Label Verification App
 
 ## Executive Summary
 
