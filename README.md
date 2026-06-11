@@ -8,7 +8,7 @@ The application extracts information from uploaded alcohol label images, identif
 
 ---
 
-## 🌐Live Demo
+## 🌐 Live Demo
 
 ### Frontend Application
 
@@ -17,10 +17,6 @@ https://ttb-label-verification-app.vercel.app
 ### Backend API
 
 https://ttb-label-verification-app-api.onrender.com
-
-### Source Code Repository
-
-https://github.com/0x01987/ttb-label-verification-app
 
 ---
 
@@ -48,7 +44,7 @@ flowchart LR
 
 ---
 
-## 📸Screenshots
+## 📸 Screenshots
 
 ### Upload & Verification
 
@@ -79,7 +75,7 @@ A label receives **REVIEW** when:
 
 ---
 
-## ⭐Features
+## ⭐ Features
 
 - OCR-based label extraction
 - Label image preview
@@ -95,7 +91,7 @@ A label receives **REVIEW** when:
 
 ---
 
-## 🛠️Technology Stack
+## 🛠️ Technology Stack
 
 ### Frontend
 
@@ -119,7 +115,7 @@ A label receives **REVIEW** when:
 
 ---
 
-## 🔄Validation Workflow
+## 🔄 Validation Workflow
 
 1. Upload label image.
 2. Preview uploaded label.
@@ -132,7 +128,7 @@ A label receives **REVIEW** when:
 
 ---
 
-## ✅Supported Fields
+## ✅ Supported Fields
 
 | Field                        | Supported |
 | ---------------------------- | --------- |
@@ -150,7 +146,7 @@ A label receives **REVIEW** when:
 
 ---
 
-## 💻Local Development Setup
+## 💻 Local Development Setup
 
 ## Getting Started
 
@@ -168,13 +164,13 @@ cd ttb-label-verification-app
 
 Follow the Backend Setup and Frontend Setup instructions below to run the application locally.
 
-### 🔧Prerequisites
+### 🔧 Prerequisites
 
 * Python 3.11+
 * Node.js 20+
 * npm
 
-### ⚙️Backend Setup
+### ⚙️ Backend Setup
 
 ```bash
 cd backend
@@ -190,7 +186,7 @@ API Documentation:
 http://127.0.0.1:8001/docs
 ```
 
-### 🎨Frontend Setup
+### 🎨 Frontend Setup
 
 ```bash
 cd frontend
@@ -224,7 +220,7 @@ This prototype uses a scan-first workflow. Users upload an alcohol label image, 
 
 ---
 
-## ⚠️Known Limitations
+## ⚠️ Known Limitations ⚠️
 
 - Rule-based validation logic.
 - OCR accuracy depends on image quality.
@@ -254,7 +250,7 @@ The validation engine is OCR-provider agnostic and can be extended to support en
 
 ---
 
-## 🔮Future Enhancements
+## 🔮 Future Enhancements
 
 * Production-grade OCR deployment
 * Image preprocessing using OpenCV
@@ -269,7 +265,7 @@ The validation engine is OCR-provider agnostic and can be extended to support en
 
 ---
 
-## 👤Author
+## 👤 Author
 
 Dinel Bun
 
