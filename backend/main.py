@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 import shutil
+import uuid
 
 from ocr import extract_text
 from validator import analyze_label, verify_label
@@ -27,6 +28,34 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 
+def save_upload(file: UploadFile) -> Path:
+    safe_name = f"{uuid.uuid4()}_{file.filename}"
+    file_path = UPLOAD_DIR / safe_name
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return file_path
+
+
+def build_expected(
+    brand_name: str,
+    class_type: str,
+    abv: str,
+    net_contents: str,
+    producer: str,
+    country_of_origin: str
+):
+    return {
+        "brand_name": brand_name,
+        "class_type": class_type,
+        "abv": abv,
+        "net_contents": net_contents,
+        "producer": producer,
+        "country_of_origin": country_of_origin
+    }
+
+
 @app.get("/")
 def root():
     return {"message": "TTB Label Verify API Running"}
@@ -39,10 +68,7 @@ def health():
 
 @app.post("/upload")
 async def upload_label(file: UploadFile = File(...)):
-    file_path = UPLOAD_DIR / file.filename
-
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    file_path = save_upload(file)
 
     extracted_text = extract_text(str(file_path))
     analysis = analyze_label(extracted_text)
@@ -64,21 +90,17 @@ async def verify_uploaded_label(
     producer: str = Form(""),
     country_of_origin: str = Form("")
 ):
-    file_path = UPLOAD_DIR / file.filename
-
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
+    file_path = save_upload(file)
     extracted_text = extract_text(str(file_path))
 
-    expected = {
-        "brand_name": brand_name,
-        "class_type": class_type,
-        "abv": abv,
-        "net_contents": net_contents,
-        "producer": producer,
-        "country_of_origin": country_of_origin
-    }
+    expected = build_expected(
+        brand_name,
+        class_type,
+        abv,
+        net_contents,
+        producer,
+        country_of_origin
+    )
 
     verification = verify_label(extracted_text, expected)
 
@@ -99,32 +121,45 @@ async def batch_verify_labels(
     producer: str = Form(""),
     country_of_origin: str = Form("")
 ):
-    expected = {
-        "brand_name": brand_name,
-        "class_type": class_type,
-        "abv": abv,
-        "net_contents": net_contents,
-        "producer": producer,
-        "country_of_origin": country_of_origin
-    }
+    expected = build_expected(
+        brand_name,
+        class_type,
+        abv,
+        net_contents,
+        producer,
+        country_of_origin
+    )
 
     results = []
 
     for file in files:
-        file_path = UPLOAD_DIR / file.filename
+        try:
+            file_path = save_upload(file)
+            extracted_text = extract_text(str(file_path))
+            verification = verify_label(extracted_text, expected)
 
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            results.append({
+                "filename": file.filename,
+                "ocr_text": extracted_text,
+                "overall_status": verification["overall_status"],
+                "compliance_score": verification["compliance_score"],
+                "missing_required_fields": verification.get("missing_required_fields", []),
+                "verification": verification,
+                "error": None
+            })
 
-        extracted_text = extract_text(str(file_path))
-        verification = verify_label(extracted_text, expected)
-
-        results.append({
-            "filename": file.filename,
-            "overall_status": verification["overall_status"],
-            "compliance_score": verification["compliance_score"],
-            "verification": verification
-        })
+        except Exception as e:
+            results.append({
+                "filename": file.filename,
+                "ocr_text": "",
+                "overall_status": "REVIEW",
+                "compliance_score": 0,
+                "missing_required_fields": [
+                    "Unable to process label image"
+                ],
+                "verification": None,
+                "error": str(e)
+            })
 
     return {
         "total_files": len(results),
