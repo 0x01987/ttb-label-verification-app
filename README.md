@@ -8,16 +8,6 @@ The application extracts information from uploaded alcohol label images, identif
 
 ---
 
-## Overview
-
-The TTB Label Verification App is an AI-assisted prototype designed to help Alcohol and Tobacco Tax and Trade Bureau (TTB) compliance agents review alcohol beverage labels more efficiently.
-
-The application automates portions of the label review process by extracting information from uploaded label images, validating required fields, and comparing extracted values against application data submitted by an applicant.
-
-The goal is to reduce manual verification effort while providing a simple and intuitive user experience for compliance reviewers.
-
----
-
 ## Live Demo
 
 ### Frontend Application
@@ -66,31 +56,6 @@ The implementation favors simplicity, maintainability, and reviewer usability ov
 
 ---
 
-## Example Verification Result
-
-Application Data:
-
-* Brand Name: OLD TOM DISTILLERY
-* Class / Type: Kentucky Straight Bourbon Whiskey
-* Alcohol Content: 45%
-* Net Contents: 750 mL
-
-Label Detection:
-
-* Brand Name: OLD TOM DISTILLERY
-* Class / Type: Kentucky Straight Bourbon Whiskey
-* Alcohol Content: 45%
-* Net Contents: 750 mL
-
-Result:
-
-* Compliance Score: 100%
-* Status: PASS
-
-If one or more required fields do not match expected values, the system returns REVIEW and highlights the specific discrepancies.
-
----
-
 ## Compliance Review Rules
 
 The application automatically marks a label as REVIEW if any required label element cannot be detected.
@@ -117,36 +82,6 @@ REVIEW Criteria:
 - Missing government warning
 - Mismatched application data
 - OCR unable to identify required information
-
----
-
-## Sample Test Scenarios
-
-### Scenario 1 - Matching Label
-
-Expected:
-
-* Brand Name: MALT & HOP
-* ABV: 5%
-* Net Contents: 1 PINT
-
-Result:
-
-* PASS
-
-### Scenario 2 - Mismatched ABV
-
-Expected:
-
-* ABV: 6%
-
-Detected:
-
-* ABV: 5%
-
-Result:
-
-* REVIEW
 
 ---
 
