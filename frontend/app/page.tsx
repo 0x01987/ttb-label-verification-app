@@ -22,6 +22,7 @@ type VerificationResponse = {
       };
     };
     checks: Record<string, { match: boolean; score: number }>;
+    missing_required_fields?: string[];
     compliance_score: number;
     overall_status: string;
   };
@@ -38,12 +39,15 @@ type BatchResponse = {
 
 export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const [brandName, setBrandName] = useState("");
   const [classType, setClassType] = useState("");
   const [abv, setAbv] = useState("");
   const [netContents, setNetContents] = useState("");
   const [producer, setProducer] = useState("");
   const [countryOfOrigin, setCountryOfOrigin] = useState("");
+
   const [result, setResult] = useState<VerificationResponse | null>(null);
   const [batchResult, setBatchResult] = useState<BatchResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -58,6 +62,29 @@ export default function Home() {
     formData.append("producer", producer);
     formData.append("country_of_origin", countryOfOrigin);
     return formData;
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFiles = Array.from(e.target.files || []);
+    setFiles(selectedFiles);
+    setResult(null);
+    setBatchResult(null);
+    setError("");
+
+    if (selectedFiles.length > 0) {
+      const firstFileUrl = URL.createObjectURL(selectedFiles[0]);
+      setPreviewUrl(firstFileUrl);
+    } else {
+      setPreviewUrl(null);
+    }
+  }
+
+  function clearFiles() {
+    setFiles([]);
+    setPreviewUrl(null);
+    setResult(null);
+    setBatchResult(null);
+    setError("");
   }
 
   async function handleSingleVerify(e: React.FormEvent) {
@@ -180,9 +207,7 @@ export default function Home() {
                     type="file"
                     multiple
                     accept="image/png,image/jpeg,image/jpg"
-                    onChange={(e) =>
-                      setFiles(Array.from(e.target.files || []))
-                    }
+                    onChange={handleFileChange}
                     className="hidden"
                   />
                 </label>
@@ -192,6 +217,7 @@ export default function Home() {
                     <div className="mb-2 text-sm font-semibold text-green-700">
                       ✓ Selected Files
                     </div>
+
                     <ul className="space-y-1 text-sm text-green-700">
                       {files.map((file) => (
                         <li key={file.name}>{file.name}</li>
@@ -200,11 +226,25 @@ export default function Home() {
 
                     <button
                       type="button"
-                      onClick={() => setFiles([])}
+                      onClick={clearFiles}
                       className="mt-3 text-sm font-medium text-red-600 hover:text-red-700"
                     >
                       Remove all
                     </button>
+                  </div>
+                )}
+
+                {previewUrl && (
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+                    <div className="mb-2 text-sm font-semibold text-slate-700">
+                      Label Preview
+                    </div>
+
+                    <img
+                      src={previewUrl}
+                      alt="Uploaded label preview"
+                      className="max-h-80 w-full rounded-lg object-contain"
+                    />
                   </div>
                 )}
               </div>
@@ -221,30 +261,35 @@ export default function Home() {
                 setValue={setBrandName}
                 placeholder="OLD TOM DISTILLERY"
               />
+
               <Input
                 label="Class / Type Designation"
                 value={classType}
                 setValue={setClassType}
                 placeholder="Kentucky Straight Bourbon Whiskey"
               />
+
               <Input
                 label="Alcohol Content"
                 value={abv}
                 setValue={setAbv}
                 placeholder="45%"
               />
+
               <Input
                 label="Net Contents"
                 value={netContents}
                 setValue={setNetContents}
                 placeholder="750 mL"
               />
+
               <Input
                 label="Producer / Bottler"
                 value={producer}
                 setValue={setProducer}
                 placeholder="Bottled by Old Tom Distillery"
               />
+
               <Input
                 label="Country of Origin"
                 value={countryOfOrigin}
@@ -357,6 +402,7 @@ function SingleResult({ result }: { result: VerificationResponse }) {
   const status = result.verification.overall_status;
   const score = result.verification.compliance_score;
   const found = result.verification.found;
+  const missingRequiredFields = result.verification.missing_required_fields || [];
 
   return (
     <div className="mt-6 space-y-5">
@@ -371,6 +417,17 @@ function SingleResult({ result }: { result: VerificationResponse }) {
         <p className="mt-1 text-3xl font-bold">{status}</p>
         <p className="mt-1 text-sm">Compliance Score: {score}%</p>
       </div>
+
+      {missingRequiredFields.length > 0 && (
+        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-yellow-900">
+          <h3 className="font-semibold">Missing Required Fields</h3>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+            {missingRequiredFields.map((field) => (
+              <li key={field}>{field}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
         <h3 className="mb-3 font-semibold">Detected Label Information</h3>
