@@ -217,9 +217,19 @@ Generates:
 
 Supports uploading multiple labels for batch processing and review.
 
----
+### Country of Origin Normalization
+
+Supports common country-of-origin label wording including:
+
+* Product of Canada
+* Produced in Canada
+* Made in Canada
+* Imported from Canada
+
+These variations are normalized and evaluated as equivalent country-of-origin information during compliance review.
 
 ---
+
 ### Label Image Preview
 
 Displays uploaded label images before OCR analysis so reviewers can confirm the correct label was selected.
@@ -256,6 +266,8 @@ Supports a reviewer-friendly workflow:
 * Python
 * RapidFuzz
 
+---
+
 ### OCR
 
 Development Environment:
@@ -264,7 +276,15 @@ Development Environment:
 
 Hosted Demonstration Environment:
 
-* Lightweight OCR simulation mode
+* OCR.space API
+
+Features:
+
+* Live OCR extraction from uploaded label images
+* Real-time text recognition
+* OCR fallback architecture for future provider replacement
+
+---
 
 ### Deployment
 
@@ -315,8 +335,11 @@ flowchart TD
 | Net Contents                 | Yes       |
 | Producer / Bottler           | Yes       |
 | Country of Origin            | Yes       |
-| Government Warning Statement | Yes       |
-| Batch Verification           | Yes       |
+| Government Warning Statement | Yes |
+| Missing Required Field Detection | Yes |
+| Label Image Preview | Yes |
+| Batch Verification | Yes |
+| Compliance Scoring | Yes |
 
 ---
 
@@ -390,7 +413,9 @@ http://localhost:3000
 
 * Prototype uses rule-based extraction.
 * Government warning validation currently focuses on content presence rather than exact formatting, typography, placement, or font requirements.
-* Local environment uses EasyOCR; deployed demo uses OCR simulation mode due free-tier hosting limitations.
+* Local development uses EasyOCR while the hosted application uses OCR.space API for live OCR extraction.
+* OCR accuracy depends on image quality, label design, and text readability.
+* OCR.space API availability and rate limits may impact processing during periods of heavy usage.
 * Prototype does not currently integrate with COLA.
 
 ---
@@ -408,11 +433,13 @@ http://localhost:3000
 
 ## Deployment Notes
 
-The local development environment uses EasyOCR for actual OCR extraction and label analysis.
+The local development environment uses EasyOCR for OCR extraction and testing.
 
-The hosted demonstration environment uses a lightweight OCR simulation mode due to free-tier hosting memory limitations associated with EasyOCR and PyTorch dependencies.
+The hosted application uses OCR.space API for live OCR processing of uploaded label images.
 
-This tradeoff allows reviewers to test the full application workflow while keeping the solution deployable on free cloud infrastructure.
+This architecture was selected because OCR.space provides lightweight cloud-based OCR while avoiding the memory constraints associated with hosting EasyOCR and PyTorch on free-tier cloud infrastructure.
+
+The validation engine is OCR-provider agnostic and can be extended to support enterprise OCR services such as Azure AI Vision, Amazon Textract, or Google Vision OCR with minimal changes.
 
 ---
 
