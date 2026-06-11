@@ -38,16 +38,27 @@ type BatchResponse = {
 
 export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
-  const [brandName, setBrandName] = useState("MALT & HOP");
-  const [classType, setClassType] = useState("Ale");
-  const [abv, setAbv] = useState("5%");
-  const [netContents, setNetContents] = useState("1 PINT");
+  const [brandName, setBrandName] = useState("");
+  const [classType, setClassType] = useState("");
+  const [abv, setAbv] = useState("");
+  const [netContents, setNetContents] = useState("");
   const [producer, setProducer] = useState("");
   const [countryOfOrigin, setCountryOfOrigin] = useState("");
   const [result, setResult] = useState<VerificationResponse | null>(null);
   const [batchResult, setBatchResult] = useState<BatchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  function buildFormData() {
+    const formData = new FormData();
+    formData.append("brand_name", brandName);
+    formData.append("class_type", classType);
+    formData.append("abv", abv);
+    formData.append("net_contents", netContents);
+    formData.append("producer", producer);
+    formData.append("country_of_origin", countryOfOrigin);
+    return formData;
+  }
 
   async function handleSingleVerify(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +89,7 @@ export default function Home() {
       const data = await response.json();
       setResult(data);
     } catch {
-      setError("Unable to verify label. Make sure the deployed API is reachable.");
+      setError("Unable to scan label. Make sure the deployed API is reachable.");
     } finally {
       setLoading(false);
     }
@@ -115,21 +126,10 @@ export default function Home() {
       const data = await response.json();
       setBatchResult(data);
     } catch {
-      setError("Unable to verify batch. Make sure the deployed API is reachable.");
+      setError("Unable to process batch. Make sure the deployed API is reachable.");
     } finally {
       setLoading(false);
     }
-  }
-
-  function buildFormData() {
-    const formData = new FormData();
-    formData.append("brand_name", brandName);
-    formData.append("class_type", classType);
-    formData.append("abv", abv);
-    formData.append("net_contents", netContents);
-    formData.append("producer", producer);
-    formData.append("country_of_origin", countryOfOrigin);
-    return formData;
   }
 
   return (
@@ -143,16 +143,18 @@ export default function Home() {
             TTB Label Verification App
           </h1>
           <p className="mt-3 max-w-3xl text-slate-600">
-            Upload alcohol labels, enter expected application values, and verify
-            required TTB label fields.
+            Upload an alcohol beverage label to automatically extract and validate
+            key TTB-required label elements. Application data may be entered
+            optionally for comparison and verification.
           </p>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-xl bg-white p-6 shadow">
-            <h2 className="text-xl font-semibold">Application Data</h2>
+            <h2 className="text-xl font-semibold">Scan Alcohol Label</h2>
             <p className="mt-1 text-sm text-slate-500">
-              These values represent the data submitted in the label application.
+              Upload a label image first. Application data is optional and can be
+              used to compare OCR results against submitted values.
             </p>
 
             <form onSubmit={handleSingleVerify} className="mt-6 space-y-4">
@@ -207,12 +209,48 @@ export default function Home() {
                 )}
               </div>
 
-              <Input label="Brand Name" value={brandName} setValue={setBrandName} placeholder="OLD TOM DISTILLERY" />
-              <Input label="Class / Type Designation" value={classType} setValue={setClassType} placeholder="Kentucky Straight Bourbon Whiskey" />
-              <Input label="Alcohol Content" value={abv} setValue={setAbv} placeholder="45%" />
-              <Input label="Net Contents" value={netContents} setValue={setNetContents} placeholder="750 mL" />
-              <Input label="Producer / Bottler" value={producer} setValue={setProducer} placeholder="Bottled by Old Tom Distillery" />
-              <Input label="Country of Origin" value={countryOfOrigin} setValue={setCountryOfOrigin} placeholder="Product of Mexico" />
+              <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
+                Optional: Enter application values below to compare OCR results
+                against submitted label application data. Leave fields blank to
+                scan and extract label information only.
+              </div>
+
+              <Input
+                label="Brand Name"
+                value={brandName}
+                setValue={setBrandName}
+                placeholder="OLD TOM DISTILLERY"
+              />
+              <Input
+                label="Class / Type Designation"
+                value={classType}
+                setValue={setClassType}
+                placeholder="Kentucky Straight Bourbon Whiskey"
+              />
+              <Input
+                label="Alcohol Content"
+                value={abv}
+                setValue={setAbv}
+                placeholder="45%"
+              />
+              <Input
+                label="Net Contents"
+                value={netContents}
+                setValue={setNetContents}
+                placeholder="750 mL"
+              />
+              <Input
+                label="Producer / Bottler"
+                value={producer}
+                setValue={setProducer}
+                placeholder="Bottled by Old Tom Distillery"
+              />
+              <Input
+                label="Country of Origin"
+                value={countryOfOrigin}
+                setValue={setCountryOfOrigin}
+                placeholder="Product of Mexico"
+              />
 
               {error && (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -226,7 +264,7 @@ export default function Home() {
                   disabled={loading}
                   className="rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:bg-slate-400"
                 >
-                  {loading ? "Verifying..." : "Verify First Label"}
+                  {loading ? "Scanning..." : "Scan & Verify Label"}
                 </button>
 
                 <button
@@ -235,18 +273,19 @@ export default function Home() {
                   onClick={handleBatchVerify}
                   className="rounded-lg bg-slate-800 px-4 py-3 font-semibold text-white hover:bg-slate-900 disabled:bg-slate-400"
                 >
-                  {loading ? "Processing..." : "Batch Verify"}
+                  {loading ? "Processing..." : "Batch Scan"}
                 </button>
               </div>
             </form>
           </section>
 
           <section className="rounded-xl bg-white p-6 shadow">
-            <h2 className="text-xl font-semibold">Verification Result</h2>
+            <h2 className="text-xl font-semibold">Scan Result</h2>
 
             {!result && !batchResult && (
               <div className="mt-6 rounded-lg border border-dashed border-slate-300 p-8 text-center text-slate-500">
-                Upload label image(s) and run verification to see results.
+                Upload label image(s) and run scan to see detected fields and
+                verification results.
               </div>
             )}
 
@@ -290,7 +329,6 @@ export default function Home() {
   );
 }
 
-
 function Input({
   label,
   value,
@@ -315,10 +353,10 @@ function Input({
   );
 }
 
-
 function SingleResult({ result }: { result: VerificationResponse }) {
   const status = result.verification.overall_status;
   const score = result.verification.compliance_score;
+  const found = result.verification.found;
 
   return (
     <div className="mt-6 space-y-5">
@@ -334,6 +372,23 @@ function SingleResult({ result }: { result: VerificationResponse }) {
         <p className="mt-1 text-sm">Compliance Score: {score}%</p>
       </div>
 
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <h3 className="mb-3 font-semibold">Detected Label Information</h3>
+
+        <div className="grid gap-2 text-sm">
+          <DetectedField label="Brand" value={found.brand_name} />
+          <DetectedField label="Class / Type" value={found.class_type} />
+          <DetectedField label="ABV" value={found.abv} />
+          <DetectedField label="Net Contents" value={found.net_contents} />
+          <DetectedField label="Producer / Bottler" value={found.producer} />
+          <DetectedField label="Country of Origin" value={found.country_of_origin} />
+          <DetectedField
+            label="Government Warning"
+            value={found.government_warning.found ? "Detected" : "Missing"}
+          />
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-lg border border-slate-200">
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50">
@@ -345,16 +400,46 @@ function SingleResult({ result }: { result: VerificationResponse }) {
             </tr>
           </thead>
           <tbody>
-            <ResultRow field="Brand Name" expected={result.verification.expected.brand_name} found={result.verification.found.brand_name} check={result.verification.checks.brand_name} />
-            <ResultRow field="Class / Type" expected={result.verification.expected.class_type} found={result.verification.found.class_type} check={result.verification.checks.class_type} />
-            <ResultRow field="ABV" expected={result.verification.expected.abv} found={result.verification.found.abv} check={result.verification.checks.abv} />
-            <ResultRow field="Net Contents" expected={result.verification.expected.net_contents} found={result.verification.found.net_contents} check={result.verification.checks.net_contents} />
-            <ResultRow field="Producer / Bottler" expected={result.verification.expected.producer} found={result.verification.found.producer} check={result.verification.checks.producer} />
-            <ResultRow field="Country of Origin" expected={result.verification.expected.country_of_origin} found={result.verification.found.country_of_origin} check={result.verification.checks.country_of_origin} />
+            <ResultRow
+              field="Brand Name"
+              expected={result.verification.expected.brand_name}
+              found={found.brand_name}
+              check={result.verification.checks.brand_name}
+            />
+            <ResultRow
+              field="Class / Type"
+              expected={result.verification.expected.class_type}
+              found={found.class_type}
+              check={result.verification.checks.class_type}
+            />
+            <ResultRow
+              field="ABV"
+              expected={result.verification.expected.abv}
+              found={found.abv}
+              check={result.verification.checks.abv}
+            />
+            <ResultRow
+              field="Net Contents"
+              expected={result.verification.expected.net_contents}
+              found={found.net_contents}
+              check={result.verification.checks.net_contents}
+            />
+            <ResultRow
+              field="Producer / Bottler"
+              expected={result.verification.expected.producer}
+              found={found.producer}
+              check={result.verification.checks.producer}
+            />
+            <ResultRow
+              field="Country of Origin"
+              expected={result.verification.expected.country_of_origin}
+              found={found.country_of_origin}
+              check={result.verification.checks.country_of_origin}
+            />
             <ResultRow
               field="Government Warning"
               expected="Required"
-              found={result.verification.found.government_warning.found ? "Detected" : "Missing"}
+              found={found.government_warning.found ? "Detected" : "Missing"}
               check={result.verification.checks.government_warning}
             />
           </tbody>
@@ -371,6 +456,19 @@ function SingleResult({ result }: { result: VerificationResponse }) {
   );
 }
 
+function DetectedField({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null;
+}) {
+  return (
+    <div>
+      <strong>{label}:</strong> {value || "Not detected"}
+    </div>
+  );
+}
 
 function ResultRow({
   field,
