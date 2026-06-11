@@ -117,6 +117,35 @@ If one or more required fields do not match expected values, the system returns 
 
 ## Sample Test Scenarios
 
+## Compliance Review Rules
+
+The application automatically marks a label as REVIEW if any required label element cannot be detected.
+
+Required fields include:
+
+- Brand Name
+- Class / Type Designation
+- Alcohol Content (ABV)
+- Net Contents
+- Producer / Bottler Information
+- Country of Origin
+- Government Health Warning Statement
+
+PASS Criteria:
+
+- All required fields detected
+- Government warning detected
+- Application comparisons pass when values are provided
+
+REVIEW Criteria:
+
+- Missing required field(s)
+- Missing government warning
+- Mismatched application data
+- OCR unable to identify required information
+
+---
+
 ### Scenario 1 - Matching Label
 
 Expected:
@@ -190,6 +219,28 @@ Supports uploading multiple labels for batch processing and review.
 
 ---
 
+---
+### Label Image Preview
+
+Displays uploaded label images before OCR analysis so reviewers can confirm the correct label was selected.
+
+### Missing Required Field Detection
+
+Automatically identifies missing TTB-required label elements and generates REVIEW recommendations when required information cannot be detected.
+
+### Scan-First Workflow
+
+Supports a reviewer-friendly workflow:
+
+1. Upload label image
+2. Preview uploaded label
+3. Scan label
+4. Extract label information
+5. Validate required fields
+6. Generate PASS / REVIEW recommendation
+
+---
+
 ## Technology Stack
 
 ### Frontend
@@ -244,11 +295,13 @@ flowchart TD
 ## Validation Workflow
 
 1. User uploads a label image.
-2. OCR extracts text from the label.
-3. Application identifies required label elements.
-4. Extracted values are compared against submitted application data.
-5. Compliance score is calculated.
-6. PASS or REVIEW recommendation is returned.
+2. Uploaded label is previewed.
+3. OCR extracts text from the label.
+4. Required TTB label elements are identified.
+5. Missing required fields are detected.
+6. Extracted values are optionally compared against application data.
+7. Compliance score is calculated.
+8. PASS or REVIEW recommendation is returned.
 
 ---
 
@@ -336,7 +389,7 @@ http://localhost:3000
 ## Known Limitations
 
 * Prototype uses rule-based extraction.
-* Government warning validation checks content presence rather than formatting attributes.
+* Government warning validation currently focuses on content presence rather than exact formatting, typography, placement, or font requirements.
 * Local environment uses EasyOCR; deployed demo uses OCR simulation mode due free-tier hosting limitations.
 * Prototype does not currently integrate with COLA.
 
