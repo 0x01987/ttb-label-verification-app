@@ -23,9 +23,13 @@ def normalize(value: str):
 
 def fuzzy_match(expected: str, found: str, threshold: int = 85):
     if not expected:
-        return {"match": True, "score": 100}
+        return {
+            "match": True,
+            "score": 100
+        }
 
     score = fuzz.ratio(normalize(expected), normalize(found))
+
     return {
         "match": score >= threshold,
         "score": score
@@ -93,10 +97,13 @@ def extract_brand_name(text: str):
 
     for line in lines[:10]:
         upper = line.upper()
+
         if any(word in upper for word in skip_words):
             continue
+
         if len(line) < 3:
             continue
+
         candidates.append(line)
 
     return candidates[0] if candidates else None
@@ -148,6 +155,7 @@ def extract_producer(text: str):
 
     for line in lines:
         upper = line.upper()
+
         for keyword in keywords:
             if keyword in upper:
                 return line
@@ -198,29 +206,89 @@ def analyze_label(text: str):
     }
 
 
+def get_missing_required_fields(analysis: dict):
+    missing = []
+
+    if not analysis.get("brand_name"):
+        missing.append("Brand Name")
+
+    if not analysis.get("class_type"):
+        missing.append("Class / Type Designation")
+
+    if not analysis.get("abv"):
+        missing.append("Alcohol Content (ABV)")
+
+    if not analysis.get("net_contents"):
+        missing.append("Net Contents")
+
+    if not analysis.get("producer"):
+        missing.append("Producer / Bottler Information")
+
+    if not analysis.get("country_of_origin"):
+        missing.append("Country of Origin")
+
+    if not analysis.get("government_warning", {}).get("found"):
+        missing.append("Government Health Warning Statement")
+
+    return missing
+
+
 def verify_label(text: str, expected: dict):
     analysis = analyze_label(text)
 
     checks = {
-        "brand_name": fuzzy_match(expected.get("brand_name", ""), analysis.get("brand_name") or "", 75),
-        "class_type": fuzzy_match(expected.get("class_type", ""), analysis.get("class_type") or "", 75),
-        "abv": fuzzy_match(expected.get("abv", ""), analysis.get("abv") or "", 90),
-        "net_contents": fuzzy_match(expected.get("net_contents", ""), analysis.get("net_contents") or "", 85),
-        "producer": fuzzy_match(expected.get("producer", ""), analysis.get("producer") or "", 75),
-        "country_of_origin": fuzzy_match(expected.get("country_of_origin", ""), analysis.get("country_of_origin") or "", 75),
+        "brand_name": fuzzy_match(
+            expected.get("brand_name", ""),
+            analysis.get("brand_name") or "",
+            75
+        ),
+        "class_type": fuzzy_match(
+            expected.get("class_type", ""),
+            analysis.get("class_type") or "",
+            75
+        ),
+        "abv": fuzzy_match(
+            expected.get("abv", ""),
+            analysis.get("abv") or "",
+            90
+        ),
+        "net_contents": fuzzy_match(
+            expected.get("net_contents", ""),
+            analysis.get("net_contents") or "",
+            85
+        ),
+        "producer": fuzzy_match(
+            expected.get("producer", ""),
+            analysis.get("producer") or "",
+            75
+        ),
+        "country_of_origin": fuzzy_match(
+            expected.get("country_of_origin", ""),
+            analysis.get("country_of_origin") or "",
+            75
+        ),
         "government_warning": {
             "match": analysis["government_warning"]["found"],
             "score": 100 if analysis["government_warning"]["found"] else 0
         }
     }
 
+    missing_required_fields = get_missing_required_fields(analysis)
+
     passed_count = sum(1 for check in checks.values() if check["match"])
     compliance_score = int((passed_count / len(checks)) * 100)
+
+    overall_status = (
+        "PASS"
+        if compliance_score == 100 and len(missing_required_fields) == 0
+        else "REVIEW"
+    )
 
     return {
         "expected": expected,
         "found": analysis,
         "checks": checks,
+        "missing_required_fields": missing_required_fields,
         "compliance_score": compliance_score,
-        "overall_status": "PASS" if compliance_score == 100 else "REVIEW"
+        "overall_status": overall_status
     }
